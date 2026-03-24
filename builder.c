@@ -1,46 +1,78 @@
 //
 // Created by Jeevaanandh Ilayaraja on 24/03/26.
 //
+
+
+
+//THIS CAN BE REUSED FOR LINUX TOO.
+
+
+
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
 #include<unistd.h>
 #include<signal.h>
 
-pid_t cid=-1;
+
+pid_t run_cid=-1;
+pid_t build_cid=-1;
+char *Path;
+
+void run(char* rootPath);
 
 
-int run_clean(char* rootPath) {
-    pid_t pid= fork();
-    if (pid == 0) {
+//Remember: This is used t kill the child process that runs the server
+//So, after we kill it, the parent should be notified, otherwise, the child will remain a zombie.
+int kill_child(pid_t *pid) {
+    if (*pid == -1) {
+        return 0;
+    }
+
+    printf("\n\n\nKilling...\n\n\n");
+
+    killpg(*pid, SIGKILL);
+    waitpid(*pid, NULL, 0);
+    *pid = -1;
+
+
+
+}
+
+
+//This is the Handler for SIGCHLD ----- The OS calls this function when a child exits. (THIS IS TO PREVENT ZOMBIE AND ENSURE THAT run() IS CALLED AFTER THE BUILD IS DONE).
+void handle_sigint(int sig) {
+    int status;
+    pid_t pid;
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+        if (pid == build_cid) {
+            build_cid= -1;
+            kill_child(&run_cid);
+
+            run(Path);
+        }
+
+    }
+
+}
+
+
+
+void run_clean(char* rootPath) {
+    build_cid= fork();
+    if (build_cid == 0) {
+        setpgid(0,0);
         chdir(rootPath);
 
         execl("/bin/sh", "sh", "-c", "mvn clean package", NULL);
 
     }
-
-    int status;
-    waitpid(pid, &status, 0);
-
-    if (WIFEXITED(status)){
-        int code = WEXITSTATUS(status);
-
-        if (code==0) {
-            return 0;
-        }
-
-        else {
-            return 1;
-        }
-    }
-
-    return 1;
-
 }
 
+
 void run(char* rootPath) {
-    cid=fork();
-    if (cid == 0)
+    run_cid=fork();
+    if (run_cid == 0)
     {
         setpgid(0,0);
         chdir(rootPath);
@@ -51,29 +83,21 @@ void run(char* rootPath) {
 
 }
 
-int kill_child() {
-    if (cid == -1) {
-        return 0;
-    }
-
-    killpg(cid, SIGKILL);
-    waitpid(cid, NULL, 0);
-    cid = -1;
 
 
-}
 
 //This is what The Watcher Calls.
 void start_server(char* rootPath) {
+
+    Path= rootPath;
+
     int res;
 
-    res= run_clean(rootPath);
+    kill_child(&build_cid);
 
-    if (res==0) {
-        kill_child();
+    run_clean(rootPath);
 
-        run(rootPath);
 
-    }
+
 
 }

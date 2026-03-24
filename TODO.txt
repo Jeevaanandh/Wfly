@@ -1,0 +1,3 @@
+(RESOLVED)
+1. Right now, in the macWatcher, if another save was made when 'mvn clean package' is being run, the logic breaks.
+   Try to fix that by using a global variable that shows 'mvn clean package' is being run.

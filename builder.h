@@ -6,5 +6,6 @@
 #define WILDFLYWATCHER_BUILDER_H
 
 void start_server(char* rootPath);
+void handle_sigint(int sig);
 
 #endif //WILDFLYWATCHER_BUILDER_H

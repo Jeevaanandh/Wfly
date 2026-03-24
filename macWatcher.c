@@ -56,8 +56,11 @@ void callback(
 }
 
 
-//Change the name of this function when
+//Change the name of this function when using CLI
 int main() {
+    //Move this to the main() of the CLI when you start with the CLI
+    signal(SIGCHLD, handle_sigint);
+
     strcpy(path, "/Users/JeevaanandhIlayaraja/Desktop/MicroProfileTesting/service-a");
 
     CFStringRef pathToWatch = CFStringCreateWithCString(
