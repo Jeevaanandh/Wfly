@@ -7,7 +7,15 @@
 #include<sys/event.h>
 #include<sys/types.h>
 #include<CoreServices/CoreServices.h>
+#include<string.h>
 
+/*
+
+ callback() is called whenever there are queued notification after a time window (latency)
+
+ The callback() function deals with what should be done whenever there is an event
+
+*/
 
 void callback(
     ConstFSEventStreamRef streamRef,
@@ -19,7 +27,18 @@ void callback(
 
     char **paths= eventPaths;
 
-    printf("Change Occured\n");
+    int flag=0;
+    for(int i=0;i<numEvents;i++) {
+        if (strstr(paths[i],".txt") != NULL) {
+            flag=1;
+        }
+
+    }
+
+    if (flag==1) {
+        printf("Change Occured\n");
+    }
+
 
 
 }
