@@ -8,6 +8,8 @@
 #include<sys/types.h>
 #include<CoreServices/CoreServices.h>
 #include<string.h>
+#include<limits.h>
+#include "builder.h"
 
 /*
 
@@ -16,6 +18,8 @@
  The callback() function deals with what should be done whenever there is an event
 
 */
+
+char path[MAXPATHLEN];
 
 void callback(
     ConstFSEventStreamRef streamRef,
@@ -29,14 +33,22 @@ void callback(
 
     int flag=0;
     for(int i=0;i<numEvents;i++) {
-        if (strstr(paths[i],".txt") != NULL) {
+
+        if (strstr(paths[i], "/target")!=NULL) {
+            continue;
+        }
+        if (strstr(paths[i],".java") != NULL || strstr(paths[i],".xml") != NULL) {
             flag=1;
+            break;
         }
 
     }
 
     if (flag==1) {
+        //Call the function to run the commands here.
         printf("Change Occured\n");
+        start_server(path);
+
     }
 
 
@@ -44,9 +56,16 @@ void callback(
 }
 
 
+//Change the name of this function when
 int main() {
+    strcpy(path, "/Users/JeevaanandhIlayaraja/Desktop/MicroProfileTesting/service-a");
 
-    CFStringRef pathToWatch= CFSTR("./testdir");
+    CFStringRef pathToWatch = CFStringCreateWithCString(
+        NULL,
+        path,
+        kCFStringEncodingUTF8
+    );
+
     CFArrayRef pathsToWatch= CFArrayCreate(NULL, (const void **)&pathToWatch, 1, NULL);
 
     void *callbackInfo= NULL;
