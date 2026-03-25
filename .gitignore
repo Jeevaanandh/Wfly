@@ -1,3 +1,7 @@
 testdir/
 .idea
 watcher
+Watchers/builder.o
+Watchers/macWatcher.o
+wfly
+CLI.o

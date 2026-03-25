@@ -41,7 +41,7 @@ int kill_child(pid_t *pid) {
 
 
 //This is the Handler for SIGCHLD ----- The OS calls this function when a child exits. (THIS IS TO PREVENT ZOMBIE AND ENSURE THAT run() IS CALLED AFTER THE BUILD IS DONE).
-void handle_sigint(int sig) {
+void handle_sigchld(int sig) {
     int status;
     pid_t pid;
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
@@ -55,6 +55,19 @@ void handle_sigint(int sig) {
     }
 
 }
+
+
+void handle_sigint(int sig) {
+    printf("\nStopping hotreload...\n");
+
+    if (run_cid > 0) {
+        killpg(run_cid, SIGTERM);
+    }
+
+    _exit(0);
+}
+
+
 
 
 
@@ -96,8 +109,5 @@ void start_server(char* rootPath) {
     kill_child(&build_cid);
 
     run_clean(rootPath);
-
-
-
 
 }

@@ -20,6 +20,7 @@
 */
 
 char path[MAXPATHLEN];
+int firstRun=0;
 
 void callback(
     ConstFSEventStreamRef streamRef,
@@ -56,12 +57,14 @@ void callback(
 }
 
 
-//Change the name of this function when using CLI
-int main() {
+//Change the name of this function when using CLI.
+//Change it to watcher.
+int watcher(char *rootPath) {
     //Move this to the main() of the CLI when you start with the CLI
-    signal(SIGCHLD, handle_sigint);
 
-    strcpy(path, "/Users/JeevaanandhIlayaraja/Desktop/MicroProfileTesting/service-a");
+
+    strcpy(path, rootPath);
+    start_server(path);
 
     CFStringRef pathToWatch = CFStringCreateWithCString(
         NULL,
@@ -87,5 +90,9 @@ int main() {
     FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
     FSEventStreamStart(stream);
     CFRunLoopRun();
+
+
+
+
 
 }
