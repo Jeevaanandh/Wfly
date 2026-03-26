@@ -109,7 +109,7 @@ int watcher(char *projectFolder) {
             if (event->len == 0) goto incr;
             if (event->name[0] == '.')    goto incr;  // hidden files
             if (strstr(event->name, "~"))    goto incr;
-            if (strstr(evne->name, "/target")) goto incr;
+            if (strstr(event->name, "/target")) goto incr;
 
 
 
