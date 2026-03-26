@@ -24,9 +24,9 @@ void run(char* rootPath);
 
 //Remember: This is used t kill the child process that runs the server
 //So, after we kill it, the parent should be notified, otherwise, the child will remain a zombie.
-int kill_child(pid_t *pid) {
+void kill_child(pid_t *pid) {
     if (*pid == -1) {
-        return 0;
+        return ;
     }
 
     printf("\n\n\nKilling...\n\n\n");
@@ -58,7 +58,7 @@ void handle_sigchld(int sig) {
 
 
 void handle_sigint(int sig) {
-    printf("\nStopping hotreload...\n");
+    printf("\n\n\nStopping wfly...\n\n\n");
 
     if (run_cid > 0) {
         killpg(run_cid, SIGTERM);
@@ -103,8 +103,6 @@ void run(char* rootPath) {
 void start_server(char* rootPath) {
 
     Path= rootPath;
-
-    int res;
 
     kill_child(&build_cid);
 

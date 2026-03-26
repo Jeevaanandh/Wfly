@@ -2,13 +2,24 @@ CC = gcc
 CFLAGS = -Wall
 
 TARGET = wfly
-SRC = CLI.c Watchers/macWatcher.c Watchers/builder.c
-OBJ = $(SRC:.c=.o)
-
 PREFIX = /usr/local/bin
 
-# macOS frameworks
-FRAMEWORKS = -framework CoreServices -framework CoreFoundation
+# Detect OS
+UNAME_S := $(shell uname -s)
+
+# Default values
+FRAMEWORKS =
+SRC = CLI.c Watchers/builder.c
+
+# OS-specific config
+ifeq ($(UNAME_S), Darwin)
+    SRC += Watchers/macWatcher.c
+    FRAMEWORKS = -framework CoreServices -framework CoreFoundation
+else ifeq ($(UNAME_S), Linux)
+    SRC += Watchers/linuxWatcher.c
+endif
+
+OBJ = $(SRC:.c=.o)
 
 all: $(TARGET)
 

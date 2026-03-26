@@ -47,7 +47,7 @@ void callback(
 
     if (flag==1) {
         //Call the function to run the commands here.
-        printf("Change Occured\n");
+        printf("\n\n\nChange Occured\n\n\n");
         start_server(path);
 
     }

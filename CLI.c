@@ -7,7 +7,14 @@
 #include <unistd.h>
 #include <signal.h>
 #include "Watchers/builder.h"
-#include "Watchers/macWatcher.h"
+
+#ifdef __APPLE__
+	#include "Watchers/macWatcher.h"
+
+#elif __linux__
+	#include "Watchers/linuxWatcher.h"
+
+#endif
 
 
 int main(int argc, char *argv[]) {
