@@ -70,7 +70,7 @@ void handle_sigint(int sig) {
 
 
 
-
+//So, after this child exits ----- a SIGCHLD is raised and the run() function is called from there.
 void run_clean(char* rootPath) {
     build_cid= fork();
     if (build_cid == 0) {
@@ -89,7 +89,7 @@ void run(char* rootPath) {
     {
         setpgid(0,0);
         chdir(rootPath);
-        execl("/bin/sh", "sh", "-c", "mvn wildfly-jar:run", NULL);
+        execl("/bin/sh", "sh", "-c", "mvn wildfly:deploy", NULL);
 
     }
 
