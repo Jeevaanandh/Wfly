@@ -5,3 +5,4 @@ Watchers/builder.o
 Watchers/macWatcher.o
 wfly
 CLI.o
+wfly-rust/target
