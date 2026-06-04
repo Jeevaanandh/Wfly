@@ -1,11 +1,11 @@
-use notify::{Event, FsEventWatcher, RecursiveMode, Result, Watcher};
+use notify::{Event, RecursiveMode, Result, Watcher};
 use std::env;
 use std::time::{Duration, Instant};
 use std::{path::Path, sync::mpsc};
 
 use crate::starter::start_server;
 
-pub async fn watch() -> notify::Result<()> {
+pub async fn watch(key: &str) -> notify::Result<()> {
     let current_dir = env::current_dir().unwrap().to_str().unwrap().to_string();
 
     let (tx, rx) = mpsc::channel::<Result<Event>>();
@@ -16,7 +16,7 @@ pub async fn watch() -> notify::Result<()> {
 
     println!("Directory is being watched: {:?}", current_dir);
 
-    start_server(&current_dir, 1).await;
+    start_server(&current_dir, key, 0, 1).await;
 
     let mut last_run = Instant::now();
     for res in rx {
@@ -39,7 +39,7 @@ pub async fn watch() -> notify::Result<()> {
 
                     println!("Changes Detected in: {:?}", event.paths[0]);
 
-                    start_server(&current_dir, 0).await;
+                    start_server(&current_dir, key, 0, 0).await;
                     last_run = event_instant;
                 }
             }

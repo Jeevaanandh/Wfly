@@ -12,15 +12,12 @@ pub async fn db_init() -> Result<SqlitePool> {
 
     let pool = SqlitePool::connect(&connection_string).await?;
 
-    //Modified the schema to fit the gloal test.db_init
-    //file --- name of the file
-    //filepath --- path of that file (used to open the file)
-    //dir --- to store the directory the
     sqlx::query(
         r#"
         CREATE TABLE IF NOT EXISTS wfly_path (
 
-        path TEXT PRIMARY KEY
+        key TEXT PRIMARY KEY,
+        path TEXT 
 
         )"#,
     )
@@ -34,8 +31,9 @@ pub async fn db_init() -> Result<SqlitePool> {
     Ok(pool)
 }
 
-pub async fn add_path(pool: &SqlitePool, path: &str) -> Result<(), sqlx::Error> {
-    sqlx::query("INSERT OR REPLACE INTO wfly_path (path) VALUES (?)")
+pub async fn add_path(pool: &SqlitePool, path: &str, key: &str) -> Result<(), sqlx::Error> {
+    sqlx::query("INSERT OR REPLACE INTO wfly_path (key, path) VALUES (?, ?)")
+        .bind(key)
         .bind(path)
         .execute(pool)
         .await?;
@@ -43,10 +41,19 @@ pub async fn add_path(pool: &SqlitePool, path: &str) -> Result<(), sqlx::Error> 
     Ok(())
 }
 
-pub async fn get_path(pool: &SqlitePool) -> Result<String, sqlx::Error> {
-    let path = sqlx::query_scalar::<_, String>("SELECT path FROM wfly_path LIMIT 1")
+pub async fn get_path(pool: &SqlitePool, key: &str) -> Result<String, sqlx::Error> {
+    let path = sqlx::query_scalar::<_, String>("SELECT path FROM wfly_path WHERE key = ?")
+        .bind(key)
         .fetch_one(pool)
         .await?;
 
     Ok(path)
+}
+
+pub async fn get_keys(pool: &SqlitePool) -> Result<Vec<String>, sqlx::Error> {
+    let keys = sqlx::query_scalar("SELECT key FROM wfly_path")
+        .fetch_all(pool)
+        .await?;
+
+    Ok(keys)
 }

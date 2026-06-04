@@ -1,0 +1,3 @@
+1. Right now, the file changes are only monitored when wfly-start is run from the correct directory.
+But, when we just want to start the server ---- this should not call the watcher() function as its not needed.
+So, add a new command to just start the server (standalone.sh)

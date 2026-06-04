@@ -3,8 +3,9 @@ mod starter;
 mod watcher;
 
 use clap::{Parser, Subcommand};
-use db::{add_path, db_init, get_path};
+use db::{add_path, db_init, get_keys};
 use libc::{SIGINT, signal};
+use starter::start_server;
 use watcher::watch;
 
 use starter::handle_sigint;
@@ -18,9 +19,29 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Cmd {
-    Start,
+    Start {
+        #[arg(long)]
+        key: String,
+    },
 
-    Set { path: String },
+    Set {
+        #[arg(long)]
+        key: String,
+
+        #[arg(long)]
+        path: String,
+    },
+
+    GetKeys,
+
+    //This is to just start the standalone.sh
+    Run {
+        #[arg(long)]
+        key: String,
+
+        #[arg(long)]
+        offset: Option<u64>,
+    },
 }
 
 #[tokio::main]
@@ -31,9 +52,21 @@ async fn main() {
 
     let args = Args::parse();
 
+    let pool = match db_init().await {
+        Ok(p) => p,
+
+        Err(e) => {
+            println!("Error in creating the pool\n\n");
+
+            println!("ERROR: {:?}", e);
+
+            return;
+        }
+    };
+
     match args.command {
-        Cmd::Start => {
-            match watch().await {
+        Cmd::Start { key } => {
+            match watch(&key).await {
                 Ok(_) => {}
 
                 Err(e) => {
@@ -44,20 +77,8 @@ async fn main() {
             };
         }
 
-        Cmd::Set { path } => {
-            let pool = match db_init().await {
-                Ok(p) => p,
-
-                Err(e) => {
-                    println!("Error in creating the pool\n\n");
-
-                    println!("ERROR: {:?}", e);
-
-                    return;
-                }
-            };
-
-            match add_path(&pool, &path).await {
+        Cmd::Set { key, path } => {
+            match add_path(&pool, &path, &key).await {
                 Ok(_) => {
                     println!("The Wildfly Home path was added successfully");
                 }
@@ -68,6 +89,32 @@ async fn main() {
                     println!("ERROR: {:?}", e);
                 }
             };
+        }
+
+        Cmd::GetKeys => {
+            let keys = match get_keys(&pool).await {
+                Ok(k) => k,
+
+                Err(e) => {
+                    println!("Error in getting the keys from the DB");
+                    println!("ERROR: {:?}", e);
+                    return;
+                }
+            };
+
+            for key in keys {
+                println!("{:?}", key);
+            }
+        }
+
+        Cmd::Run { key, offset } => {
+            if let Some(offset) = offset {
+                start_server("", &key, offset, 1).await;
+            } else {
+                start_server("", &key, 0, 1).await;
+            }
+
+            loop {}
         }
     }
 }
