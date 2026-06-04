@@ -1,3 +1,7 @@
 (RESOLVED)
 1. Right now, in the macWatcher, if another save was made when 'mvn clean package' is being run, the logic breaks.
    Try to fix that by using a global variable that shows 'mvn clean package' is being run.
+
+
+2. IN wfly-rust, take a "key" argument when creating a Wildfly Directory path ----- This will help with the deploying part.
+	Also, when using the start command to run ./standalone.sh ----- take an argument for the port no. (OR) the offset.
