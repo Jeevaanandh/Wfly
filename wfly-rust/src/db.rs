@@ -17,7 +17,8 @@ pub async fn db_init() -> Result<SqlitePool> {
         CREATE TABLE IF NOT EXISTS wfly_path (
 
         key TEXT PRIMARY KEY,
-        path TEXT 
+        path TEXT,
+        offset INT
 
         )"#,
     )
@@ -31,10 +32,16 @@ pub async fn db_init() -> Result<SqlitePool> {
     Ok(pool)
 }
 
-pub async fn add_path(pool: &SqlitePool, path: &str, key: &str) -> Result<(), sqlx::Error> {
-    sqlx::query("INSERT OR REPLACE INTO wfly_path (key, path) VALUES (?, ?)")
+pub async fn add_path(
+    pool: &SqlitePool,
+    path: &str,
+    key: &str,
+    offset: i32,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("INSERT OR REPLACE INTO wfly_path (key, path, offset) VALUES (?, ?, ?)")
         .bind(key)
         .bind(path)
+        .bind(offset)
         .execute(pool)
         .await?;
 
@@ -56,4 +63,14 @@ pub async fn get_keys(pool: &SqlitePool) -> Result<Vec<String>, sqlx::Error> {
         .await?;
 
     Ok(keys)
+}
+
+pub async fn get_offset(pool: &SqlitePool, key: &str) -> i32 {
+    let offset = sqlx::query_scalar::<_, i32>("SELECT offset FROM wfly_path WHERE key = ?")
+        .bind(key)
+        .fetch_one(pool)
+        .await
+        .unwrap();
+
+    return offset;
 }

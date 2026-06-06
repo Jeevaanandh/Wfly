@@ -3,5 +3,12 @@
    Try to fix that by using a global variable that shows 'mvn clean package' is being run.
 
 
+(RESOLVED)
 2. IN wfly-rust, take a "key" argument when creating a Wildfly Directory path ----- This will help with the deploying part.
 	Also, when using the start command to run ./standalone.sh ----- take an argument for the port no. (OR) the offset.
+
+
+3. Create a command to start all the server in at the paths? or ---- think of something better to start multiple servers at once.	
+
+	* Probably try to set the offset (port no.) when settting the path (Default port to start it on if --offset is not mentioned on run) ---- but, it can be NULL too. So, if its null, offset=0 ---- handles this ie. add offset=0 if its not mentioned during set.
+			(THIS IS FOR start-all)

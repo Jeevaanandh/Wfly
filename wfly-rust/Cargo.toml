@@ -10,5 +10,6 @@ nix = { version = "0.30", features = ["process"] }
 sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-native-tls", "macros"] }
 tokio = { version = "1", features = ["full"] }
 libc = "0.2"
+ctrlc = "3.5"
 
 

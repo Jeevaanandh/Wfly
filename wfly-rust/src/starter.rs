@@ -1,19 +1,10 @@
 use std::os::unix::process::CommandExt;
 use std::process::Command;
+use std::sync::Mutex;
 
 use crate::db::{db_init, get_path};
 
-static mut CHILD_PID: i32 = -1;
-
-pub extern "C" fn handle_sigint(_: i32) {
-    unsafe {
-        if CHILD_PID != -1 {
-            libc::kill(-CHILD_PID, libc::SIGTERM);
-        }
-    }
-
-    std::process::exit(0);
-}
+pub static CHILD_PID: Mutex<Vec<i32>> = Mutex::new(Vec::new());
 
 fn deploy(cur_dir: &str) {
     let mut child = Command::new("mvn")
@@ -59,9 +50,7 @@ fn run_standalone(path: &str, offset: u64) {
             .expect("Failed to run standalone.sh")
     };
 
-    unsafe {
-        CHILD_PID = child.id() as i32;
-    }
+    CHILD_PID.lock().unwrap().push(child.id() as i32);
 }
 
 pub async fn start_server(cur_dir: &str, key: &str, offset: u64, first_run: i32) {

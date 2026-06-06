@@ -3,12 +3,12 @@ mod starter;
 mod watcher;
 
 use clap::{Parser, Subcommand};
-use db::{add_path, db_init, get_keys};
-use libc::{SIGINT, signal};
+use ctrlc;
+use db::{add_path, db_init, get_keys, get_offset};
 use starter::start_server;
 use watcher::watch;
 
-use starter::handle_sigint;
+use starter::CHILD_PID;
 
 #[derive(Parser)]
 #[command(name = "docsearch", about = "A hotreload tool for Wildfly servers")]
@@ -30,6 +30,9 @@ enum Cmd {
 
         #[arg(long)]
         path: String,
+
+        #[arg(long)]
+        offset: Option<i32>,
     },
 
     GetKeys,
@@ -42,13 +45,22 @@ enum Cmd {
         #[arg(long)]
         offset: Option<u64>,
     },
+
+    RunAll,
 }
 
 #[tokio::main]
 async fn main() {
-    unsafe {
-        signal(SIGINT, handle_sigint as usize);
-    }
+    ctrlc::set_handler(move || {
+        unsafe {
+            for &pid in CHILD_PID.lock().unwrap().iter() {
+                libc::kill(-pid, libc::SIGTERM);
+            }
+        }
+
+        std::process::exit(0);
+    })
+    .unwrap();
 
     let args = Args::parse();
 
@@ -77,8 +89,15 @@ async fn main() {
             };
         }
 
-        Cmd::Set { key, path } => {
-            match add_path(&pool, &path, &key).await {
+        Cmd::Set { key, path, offset } => {
+            //ie. if offset is mentiond ---- use it, otherwise = 0
+            let offset = match offset {
+                Some(o) => o,
+
+                None => 0,
+            };
+
+            match add_path(&pool, &path, &key, offset).await {
                 Ok(_) => {
                     println!("The Wildfly Home path was added successfully");
                 }
@@ -108,10 +127,32 @@ async fn main() {
         }
 
         Cmd::Run { key, offset } => {
-            if let Some(offset) = offset {
-                start_server("", &key, offset, 1).await;
-            } else {
-                start_server("", &key, 0, 1).await;
+            let offset = match offset {
+                Some(o) => o,
+
+                None => get_offset(&pool, &key).await as u64,
+            };
+
+            start_server("", &key, offset, 1).await;
+
+            loop {}
+        }
+
+        Cmd::RunAll => {
+            let keys = match get_keys(&pool).await {
+                Ok(k) => k,
+
+                Err(e) => {
+                    println!("Error in getting the keys from the DB");
+                    println!("ERROR: {:?}", e);
+
+                    return;
+                }
+            };
+
+            for k in keys {
+                let offset = get_offset(&pool, &k).await as u64;
+                start_server("", &k, offset, 1).await;
             }
 
             loop {}
