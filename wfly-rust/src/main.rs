@@ -2,9 +2,11 @@ mod db;
 mod starter;
 mod watcher;
 
+use std::ptr::null;
+
 use clap::{Parser, Subcommand};
 use ctrlc;
-use db::{add_path, db_init, get_keys, get_offset};
+use db::{add_path, db_init, get_keys, get_offset, update_entry};
 use starter::start_server;
 use watcher::watch;
 
@@ -44,6 +46,17 @@ enum Cmd {
 
         #[arg(long)]
         offset: Option<u64>,
+    },
+
+    UpdateKey {
+        #[arg(long)]
+        key: String,
+
+        #[arg(long)]
+        path: Option<String>,
+
+        #[arg(long)]
+        offset: Option<i32>,
     },
 
     RunAll,
@@ -156,6 +169,43 @@ async fn main() {
             }
 
             loop {}
+        }
+
+        Cmd::UpdateKey { key, path, offset } => {
+            let path: String = match path {
+                Some(p) => p,
+
+                None => "".to_string(),
+            };
+
+            let offset = match offset {
+                Some(o) => o,
+
+                None => -1,
+            };
+
+            if path.is_empty() && offset == -1 {
+                println!("Provide a path or the offset to update");
+                return;
+            }
+
+            let keys = get_keys(&pool).await.unwrap();
+
+            if !keys.contains(&key) {
+                println!("Could not find the key: {:?}", key);
+                return;
+            }
+
+            match update_entry(&pool, &key, &path, offset).await {
+                Ok(_) => {
+                    println!("Successfully updated!!!");
+                }
+
+                Err(e) => {
+                    println!("Error in updating the the Key");
+                    println!("ERROR: {:?}", e);
+                }
+            };
         }
     }
 }

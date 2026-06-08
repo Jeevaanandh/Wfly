@@ -8,7 +8,9 @@
 	Also, when using the start command to run ./standalone.sh ----- take an argument for the port no. (OR) the offset.
 
 
+
+(RESOLVED)
 3. Create a command to start all the server in at the paths? or ---- think of something better to start multiple servers at once.	
 
 	* Probably try to set the offset (port no.) when settting the path (Default port to start it on if --offset is not mentioned on run) ---- but, it can be NULL too. So, if its null, offset=0 ---- handles this ie. add offset=0 if its not mentioned during set.
-			(THIS IS FOR start-all)
+			(THIS IS FOR run-all)

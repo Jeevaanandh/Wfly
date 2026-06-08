@@ -1,3 +1,4 @@
+use sqlx::sqlite::SqliteError;
 use sqlx::{Result, SqlitePool};
 use std::env;
 use std::path::PathBuf;
@@ -73,4 +74,34 @@ pub async fn get_offset(pool: &SqlitePool, key: &str) -> i32 {
         .unwrap();
 
     return offset;
+}
+
+pub async fn update_entry(
+    pool: &SqlitePool,
+    key: &str,
+    path: &str,
+    offset: i32,
+) -> Result<(), sqlx::Error> {
+    if offset == -1 {
+        sqlx::query("UPDATE wfly_path SET offset = ? WHERE key = ?")
+            .bind(offset)
+            .bind(key)
+            .execute(pool)
+            .await?;
+    } else if !path.is_empty() {
+        sqlx::query("UPDATE wfly_path SET path = ? WHERE key = ?")
+            .bind(path)
+            .bind(key)
+            .execute(pool)
+            .await?;
+    } else {
+        sqlx::query("UPDATE wfly_path SET path = ?, offset = ? WHERE key = ?")
+            .bind(path)
+            .bind(offset)
+            .bind(key)
+            .execute(pool)
+            .await?;
+    }
+
+    Ok(())
 }
