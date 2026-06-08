@@ -82,7 +82,14 @@ pub async fn update_entry(
     path: &str,
     offset: i32,
 ) -> Result<(), sqlx::Error> {
-    if offset == -1 {
+    if !path.is_empty() && offset != -1 {
+        sqlx::query("UPDATE wfly_path SET path = ?, offset = ? WHERE key = ?")
+            .bind(path)
+            .bind(offset)
+            .bind(key)
+            .execute(pool)
+            .await?;
+    } else if offset != -1 {
         sqlx::query("UPDATE wfly_path SET offset = ? WHERE key = ?")
             .bind(offset)
             .bind(key)
@@ -91,13 +98,6 @@ pub async fn update_entry(
     } else if !path.is_empty() {
         sqlx::query("UPDATE wfly_path SET path = ? WHERE key = ?")
             .bind(path)
-            .bind(key)
-            .execute(pool)
-            .await?;
-    } else {
-        sqlx::query("UPDATE wfly_path SET path = ?, offset = ? WHERE key = ?")
-            .bind(path)
-            .bind(offset)
             .bind(key)
             .execute(pool)
             .await?;

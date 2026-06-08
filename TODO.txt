@@ -14,3 +14,8 @@
 
 	* Probably try to set the offset (port no.) when settting the path (Default port to start it on if --offset is not mentioned on run) ---- but, it can be NULL too. So, if its null, offset=0 ---- handles this ie. add offset=0 if its not mentioned during set.
 			(THIS IS FOR run-all)
+
+
+
+4. Try to take the project folder for each set.
+	This is dont so that mvn deploy can be run when changes were made without running start and run/ run-all is commanded. ---- This lead to the building of the old deployment.
